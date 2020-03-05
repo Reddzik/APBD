@@ -12,8 +12,6 @@ namespace APBD1
         public static async Task Main(string[] args)
         {
             string url = args.Length>0 ? args[0] : "https://www.pja.edu.pl/";
-            var mailList = new List<string>();
-            zad1Async("elo");
             var client = new HttpClient();
             var result = await client.GetAsync(url);
             //Task === promise
@@ -25,7 +23,7 @@ namespace APBD1
             var zbiory = new HashSet<string>();
             var slownik = new Dictionary<string, int>();
 
-
+            
 
             string html = await result.Content.ReadAsStringAsync();
             var regex = new Regex("[a-z]+[a-z0-9]*@[a-z.]+",
@@ -37,20 +35,27 @@ namespace APBD1
             }
 
         }
-        public static async Task zad1Async(string url)
+        public static async Task findEmails(string url, List list)
         {
+           int startLength = list.Length;
             var client = new HttpClient();
             var result = await client.GetAsync(url);
+            list<string> mailsList= list;
+            if(!result.IsSuccesStatusCode) return;
+
             string html = await result.Content.ReadAsStringAsync();
-            var regex = new Regex("[a-z]+[a-z0-9]*@[a-z.]+",
-                RegexOptions.IgnoreCase);
-            var matches = regex.Matches(html);
-            foreach (var match in matches)
-            {
-                mailList.Add((string)match);
+            var emailRegex = new Regex("[a-z]+[a-z0-9]*@[a-z.]+", RegexOptions.IgnorCase);
+            var mateches = emailRegex.Matches(html);
+            foreach(var match in matches){
+                mailsList.add(match);
             }
-            var urlRegex = new Regex("$http.+.*[.]+");
-            return zad1Async()
+            string pattern = @"^(http|https|ftp|)\://|[a-zA-Z0-9\-\.]+\.[a-zA-Z](:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\-\._\?\,\'/\\\+&amp;%\$#\=~])*[^\.\,\)\(\s]$";
+            var urlRegex = new Regex(pattern, RegexOption.IgnoreCase);
+            var matches = urlRegex.Matches(html);
+            foreach(var match in matches){
+                findEmails(match,mailList);
+            }
+            return mailList;
 
         }
     }
